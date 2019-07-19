@@ -14,7 +14,8 @@ if __name__ == "__main__":
     #  Paper
     #  Venue, Author, Affiliation
     #  Entity, Relation, RelationInstance
-    q = "CALL db.labels()" 
+    q = "CALL db.labels()"
+    q = "CALL db.()"     
     q = "CALL db.schema()" # doesn't work for some reason
     q = "CALL db.indexes()"
 
@@ -22,13 +23,20 @@ if __name__ == "__main__":
     #
     # Entity node explorations
     #
+
     # What kind of properties do Entity nodes have?
     #  entity_id, name
-    q = "MATCH(e:Entity) UNWIND keys(e) AS entity_keys RETURN DISTINCT entity_keys"
+    q = "MATCH (e:Entity) UNWIND keys(e) AS entity_keys RETURN DISTINCT entity_keys"
+
+    # How many entity instances? 564,249
+    q = "MATCH (e:Entity) RETURN COUNT(*)"
+
+    # How many unique entity names? 563,844
+    q = "MATCH (e:Entity) RETURN COUNT(DISTINCT e.name)"    
 
     
     #
-    # Relation node explorations
+    # Relation[Instance] node explorations
     #
     
     # What kind of properties do Relation nodes have?
@@ -39,7 +47,19 @@ if __name__ == "__main__":
     q = "MATCH (r:Relation) RETURN DISTINCT r.relation_type"
 
     # How many distinct relationship subtypes? 560!
+    #  gene_associated_with_disease
     q = "MATCH (r:Relation) RETURN DISTINCT r.relation_subtype"
-    result = gdb.query(q=q, data_contents=True)
-    print(result.rows)    
+
+    # What kind of properties do RelationInstance nodes have? None
+    q = "MATCH(ri:RelationInstance) UNWIND keys(ri) AS ri_keys RETURN DISTINCT ri_keys"    
     
+    # How many relation instances? 4,551,645
+    q = "MATCH (r:RelationInstance) RETURN COUNT(*)"
+
+    # How many gene_associated_with_disease? 1182 genes, 344 diseases, 1873 associations]
+    q = """MATCH (n)-[:WITH_ENTITY {entity_placement: "['0']"}]->(e0:Entity),
+                 (n)-[:WITH_RELATIONSHIP]->(r:Relation {relation_subtype: 'gene_associated_with_disease'}),
+                 (n)-[:WITH_ENTITY]->(e1:Entity)
+           RETURN COUNT(DISTINCT e0.entity_id), COUNT(DISTINCT e1.entity_id), COUNT(*)"""
+    result = gdb.query(q=q, data_contents=True)
+    print(result.rows)
