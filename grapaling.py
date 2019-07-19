@@ -59,6 +59,9 @@ if __name__ == "__main__":
 
     # Relations I care about
     subtypes = [
+        'associated_with_malfunction_of_gene_product',
+        'disease_is_marked_by_gene',
+        'disease_mapped_to_gene',
         'gene_associated_with_disease',
         'gene_product_malfunction_associated_with_disease',
         ]
