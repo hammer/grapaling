@@ -48,6 +48,7 @@ if __name__ == "__main__":
 
     # How many distinct relationship subtypes? 560!
     #  gene_associated_with_disease
+    #  gene_product_malfunction_associated_with_disease
     q = "MATCH (r:Relation) RETURN DISTINCT r.relation_subtype"
 
     # What kind of properties do RelationInstance nodes have? None
@@ -56,10 +57,16 @@ if __name__ == "__main__":
     # How many relation instances? 4,551,645
     q = "MATCH (r:RelationInstance) RETURN COUNT(*)"
 
-    # How many gene_associated_with_disease? 1182 genes, 344 diseases, 1873 associations]
-    q = """MATCH (n)-[:WITH_ENTITY {entity_placement: "['0']"}]->(e0:Entity),
-                 (n)-[:WITH_RELATIONSHIP]->(r:Relation {relation_subtype: 'gene_associated_with_disease'}),
+    # Relations I care about
+    subtypes = [
+        'gene_associated_with_disease',
+        'gene_product_malfunction_associated_with_disease',
+        ]
+    # NB: must double {} that appear in output string (gross) 
+    q = """MATCH (n)-[:WITH_ENTITY {{entity_placement: "['0']"}}]->(e0:Entity),
+                 (n)-[:WITH_RELATIONSHIP]->(r:Relation {{relation_subtype: '{subtype}'}}),
                  (n)-[:WITH_ENTITY]->(e1:Entity)
            RETURN COUNT(DISTINCT e0.entity_id), COUNT(DISTINCT e1.entity_id), COUNT(*)"""
-    result = gdb.query(q=q, data_contents=True)
-    print(result.rows)
+    for subtype in subtypes:
+        result = gdb.query(q=q.format(subtype=subtype), data_contents=True)
+        print(subtype, result.rows)
